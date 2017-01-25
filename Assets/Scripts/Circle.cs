@@ -24,7 +24,7 @@ public class Circle : MonoBehaviour {
         return _transform.position;
     }
 
-    public void SetPosition(Vector2 position)
+    public void SetCirclePosition(Vector2 position)
     {
         _transform.position = position;
     }
