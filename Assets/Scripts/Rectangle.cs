@@ -6,15 +6,15 @@ using UnityEngine;
 public class Rectangle : MonoBehaviour {
 
     private Transform _transform;
-    private float _height;
-    private float _width;
+    public float Height;
+    public float Width;
 
-    public Rectangle(Vector2 position , float height , float width)
+    public void CreateRect(Vector2 position , float height , float width)
     {
         InitRectangle();
         _transform.position = position;
-        _height = height;
-        _width = width;    
+        Height = height;
+        Width = width;    
     }
 
     private void InitRectangle()

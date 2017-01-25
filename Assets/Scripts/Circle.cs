@@ -5,13 +5,13 @@ using UnityEngine;
 public class Circle : MonoBehaviour {
 
     private Transform _transform;
-    private float _radius;
+    public float Radius;
 
-    public Circle(Vector2 position , float r)
+    public void CreateCircle(Vector2 position , float r)
     {
         InitCircle();
         _transform.position = position;
-        _radius = r;
+        Radius = r;
     }
 
     private void InitCircle()
