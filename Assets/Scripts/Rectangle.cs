@@ -24,11 +24,16 @@ public class Rectangle : MonoBehaviour {
 
     public Vector2 GetRectPosition()
     {
-        return _transform.position;
+        return transform.position;
     }
 
     public void SetRectPosition(Vector2 position)
     {
-        _transform.position = position;
+        transform.position = position;
+    }
+
+    public void SetColor(Color color)
+    {
+        GetComponent<Renderer>().material.color = color;
     }
 }
