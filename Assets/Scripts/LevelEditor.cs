@@ -12,6 +12,7 @@ public class LevelEditor : EditorWindow
     public string NewLevelName = "Level";
     public Vector2 scrollPosition = Vector2.zero;
     private Rectangle[] _rects;
+    private ObstacleCreator[] _obstacleCreators;
     private List<string> _savedLevelNames = new List<string>();
     private Level _levelData;
 
@@ -69,6 +70,7 @@ public class LevelEditor : EditorWindow
     private void Save(string levelName)
     {
         _rects = FindObjectsOfType<Rectangle>();
+        _obstacleCreators = FindObjectsOfType<ObstacleCreator>();
 
         string path = Application.dataPath + "/Resources/" + levelName + ".txt";
         var data = SerializeMapData();
@@ -97,6 +99,16 @@ public class LevelEditor : EditorWindow
             level.LevelItems.Add(r);
         }
 
+        foreach (var item in _obstacleCreators)
+        {
+            Generator g = new Generator();
+            g.ObjectCount = item.ObjectCount;
+            g.ObstacleHeight = item.ObstacleHeight;
+            g.ObstacleWidth = item.ObstacleWidth;
+            g.Position = item.GetPosition();
+            level.ObjectGenerators.Add(g);
+        }
+
         var data = JsonUtility.ToJson(level);
 
         return data;
@@ -121,12 +133,28 @@ public class LevelEditor : EditorWindow
             var rModel = r.GetComponent<Rectangle>();
             rModel.CreateRect(rect.Position, rect.Height, rect.Width);
         }
+
+        foreach (var obstacleCreator in _levelData.ObjectGenerators)
+        {
+            var generator = GenerateObstacleCreator();
+            var model = generator.GetComponent<ObstacleCreator>();
+            model.ObjectCount = obstacleCreator.ObjectCount;
+            model.ObstacleHeight = obstacleCreator.ObstacleHeight;
+            model.ObstacleWidth = obstacleCreator.ObstacleWidth;
+            model.transform.position = obstacleCreator.Position;
+        }
     }
 
     private GameObject GenerateRect()
     {
         GameObject rect = Instantiate(Resources.Load("Rectangle", typeof(GameObject))) as GameObject;
         return rect;
+    }
+
+    private GameObject GenerateObstacleCreator()
+    {
+        GameObject obstacleCreator = Instantiate(Resources.Load("ObstacleCreator", typeof(GameObject))) as GameObject;
+        return obstacleCreator;
     }
 
     public string ReadDataFromText(string path)
@@ -154,10 +182,16 @@ public class LevelEditor : EditorWindow
     private void ClearScene()
     {
         var rectangles = GameObject.FindObjectsOfType<Rectangle>();
+        var obstacleCreator = FindObjectsOfType<ObstacleCreator>();
 
         foreach (var rect in rectangles)
         {
             DestroyImmediate(rect.gameObject);
+        }
+
+        foreach (var obs in obstacleCreator)
+        {
+            DestroyImmediate(obs.gameObject);
         }
     }
 
@@ -190,10 +224,12 @@ public enum EObjectType
 public class Level
 {
     public List<LevelItem> LevelItems;
+    public List<Generator> ObjectGenerators;
 
     public Level()
     {
         LevelItems = new List<LevelItem>();
+        ObjectGenerators = new List<Generator>();
     } 
 }
 
@@ -203,4 +239,13 @@ public class LevelItem
     public float Height;
     public float Width;
     public Vector2 Position;
+}
+
+[Serializable]
+public class Generator
+{
+    public int ObjectCount;
+    public Vector2 Position;
+    public float ObstacleHeight;
+    public float ObstacleWidth;
 }

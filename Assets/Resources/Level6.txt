@@ -1,0 +1,1 @@
+{"LevelItems":[],"ObjectGenerators":[{"ObjectCount":4,"Position":{"x":4.570000171661377,"y":3.5999999046325685},"ObstacleHeight":1.0,"ObstacleWidth":1.0},{"ObjectCount":3,"Position":{"x":-4.760000228881836,"y":0.4399999976158142},"ObstacleHeight":1.0,"ObstacleWidth":1.0}]}

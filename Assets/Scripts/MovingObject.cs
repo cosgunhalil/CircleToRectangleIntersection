@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -38,6 +39,16 @@ public class MovingObject : MonoBehaviour {
         _speed = speed;
     }
 
+    public void InitMovingObstacleObject(float leftLimit, float rightLimit, float speed)
+    {
+        _transform = GetComponent<Transform>();
+        _rectangle = GetComponent<Rectangle>();
+
+        _leftLimit = leftLimit;
+        _rightLimit = rightLimit;
+        _speed = speed;
+    }
+
     public void Move()
     {
         if (_transform.position.x > _rightLimit || _transform.position.x < _leftLimit)
@@ -49,6 +60,36 @@ public class MovingObject : MonoBehaviour {
         _transform.Translate(Vector3.right * _speed * Time.deltaTime);
     }
 
+    internal void MoveLinear(EDirection _direction)
+    {
+        if (_direction == EDirection.left)
+        {
+            if (_speed > 0)
+            {
+                _speed *= -1;
+            }
 
+            if (_transform.position.x < _leftLimit)
+            {
+                _transform.position = new Vector3(_rightLimit, _transform.position.y, _transform.position.z);
+                _rectangle.SetColor(Color.white);
+            }
+        }
+        else
+        {
+            
+            if (_transform.position.x > _rightLimit)
+            {
+                _transform.position = new Vector3(_leftLimit, _transform.position.y, _transform.position.z);
+                _rectangle.SetColor(Color.white);
+            }
+        }
+        _transform.Translate(Vector3.right * _speed * Time.deltaTime);
+    }
+}
 
+public enum EDirection
+{
+    right,
+    left
 }

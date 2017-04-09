@@ -11,6 +11,7 @@ public class IntersectionDetector : MonoBehaviour {
     public Circle Circle;
     private List<MovingObject> _movingObject;
     private List<Rectangle> _rects;
+    private List<ObstacleCreator> _obstacleCreators;
     private Player _player;
     public bool isInterSect;
 
@@ -20,6 +21,7 @@ public class IntersectionDetector : MonoBehaviour {
     private Vector2 _circleDistance;
 
     private List<GameObject> _rectanglePool;
+    private List<GameObject> _obstacleGeneratorPool;
 
     public bool IsLevelCompleted;
     
@@ -68,8 +70,36 @@ public class IntersectionDetector : MonoBehaviour {
             _rects.Add(rModel);
             _movingObject.Add(r.GetComponent<MovingObject>());
         }
+
+        foreach (var generator in _levels[levelIndex].ObjectGenerators)
+        {
+            var g = GenerateGenerator();
+            var gModel = g.GetComponent<ObstacleCreator>();
+            gModel.ObstacleHeight = generator.ObstacleHeight;
+            gModel.ObstacleWidth = generator.ObstacleWidth;
+            gModel.ObjectCount = generator.ObjectCount;
+            gModel.Init();
+            _obstacleCreators.Add(gModel);
+        }
+
         InitMovingObjects(_movingObject);
         InitPlayer();
+    }
+
+    private GameObject GenerateGenerator()
+    {
+        GameObject generator;
+        if (_obstacleGeneratorPool.Count < 1)
+        {
+            generator = Instantiate(Resources.Load("ObstacleCreator", typeof(GameObject))) as GameObject;
+            _obstacleGeneratorPool.Add(generator);
+        }
+
+        generator = _obstacleGeneratorPool[_obstacleGeneratorPool.Count - 1];
+        _obstacleGeneratorPool.Remove(generator);
+
+        generator.SetActive(true);
+        return generator;
     }
 
     private void InitPlayer()
@@ -107,11 +137,14 @@ public class IntersectionDetector : MonoBehaviour {
     private void InitGame()
     {
         _rectanglePool = new List<GameObject>();
+        _obstacleCreators = new List<ObstacleCreator>();
+        _obstacleGeneratorPool = new List<GameObject>();
         IsLevelCompleted = false;
         _currentLevel = 0;
         _levels = new List<Level>();
         _movingObject = new List<MovingObject>();
         _rects = new List<Rectangle>();
+
     }
 
     private void LoadLevelsFromJson()
@@ -121,8 +154,8 @@ public class IntersectionDetector : MonoBehaviour {
         foreach (var levelName in levelNames)
         {
             string path = Application.dataPath + "/Resources/" + levelName;
-            var data = ReadDataFromText(path);
-            var levelData = JsonUtility.FromJson<Level>(data);
+            var data = Resources.Load(levelName) as TextAsset;
+            var levelData = JsonUtility.FromJson<Level>(data.text);
             _levels.Add(levelData);
         }
 
@@ -154,17 +187,22 @@ public class IntersectionDetector : MonoBehaviour {
     private List<string> GetLevelNames()
     {
         List<string> levelNames = new List<string>();
+        levelNames.Add("Level1");
+        levelNames.Add("Level2");
+        levelNames.Add("Level3");
+        levelNames.Add("Level4");
+        levelNames.Add("Level5");
+        levelNames.Add("Level6");
+        //string partialName = "Level";
 
-        string partialName = "Level";
+        //DirectoryInfo hdDirectoryInWhichToSearch = new DirectoryInfo(Application.dataPath + "/Resources");
+        //FileSystemInfo[] filesAndDirs = hdDirectoryInWhichToSearch.GetFileSystemInfos("*" + partialName + "*.txt");
 
-        DirectoryInfo hdDirectoryInWhichToSearch = new DirectoryInfo(Application.dataPath + "/Resources");
-        FileSystemInfo[] filesAndDirs = hdDirectoryInWhichToSearch.GetFileSystemInfos("*" + partialName + "*.txt");
-
-        foreach (FileSystemInfo foundFile in filesAndDirs)
-        {
-            string fullName = foundFile.Name;
-            levelNames.Add(fullName);
-        }
+        //foreach (FileSystemInfo foundFile in filesAndDirs)
+        //{
+        //    string fullName = foundFile.Name;
+        //    levelNames.Add(fullName);
+        //}
 
         return levelNames;
     }
@@ -172,6 +210,7 @@ public class IntersectionDetector : MonoBehaviour {
     private void ClearScene()
     {
         var rectangles = GameObject.FindObjectsOfType<Rectangle>();
+        var generators = GameObject.FindObjectsOfType<ObstacleCreator>();
 
         foreach (var rect in rectangles)
         {
@@ -179,8 +218,16 @@ public class IntersectionDetector : MonoBehaviour {
             _rectanglePool.Add(rect.gameObject);
         }
 
+        foreach (var generator in generators)
+        {
+            generator.gameObject.SetActive(false);
+            _obstacleGeneratorPool.Add(generator.gameObject);
+            generator.RePoolObjects();
+        }
+
         _movingObject = new List<MovingObject>();
         _rects = new List<Rectangle>();
+        _obstacleCreators = new List<ObstacleCreator>();
     }
 
     // Update is called once per frame
@@ -196,6 +243,23 @@ public class IntersectionDetector : MonoBehaviour {
                 if (isInterSect)
                 {
                     _rects[i].SetColor(Color.green);
+                }
+            }
+
+            for (int j = 0; j < _obstacleCreators.Count; j++)
+            {
+                _obstacleCreators[j].MoveRects();
+                foreach (var rect in _obstacleCreators[j].Rects)
+                {
+                    isInterSect = CheckIntersection(rect);
+                    if (isInterSect)
+                    {
+                        rect.SetColor(Color.green);
+                    }
+                    else
+                    {
+                        rect.SetColor(Color.white);
+                    }
                 }
             }
 
